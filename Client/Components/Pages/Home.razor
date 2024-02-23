@@ -1,0 +1,19 @@
+﻿@page "/"
+@using BancaComuni;
+@rendermode InteractiveServer
+
+<PageTitle>Home</PageTitle>
+
+@foreach (var a in Enum.GetValues(typeof(Operazioni)))
+{
+    <button @onclick="()=>Esegui(op:(Operazioni)a)" style="margin=0,10,0,0">
+        @a.ToString()
+    </button>
+}
+@code {
+    Cliente c = new("Mattia","Gambato",300,"batanga");
+    void Esegui(Operazioni op)
+    {
+        Comunicazione.EseguiOperazione(op, c, "30");
+    }
+}
