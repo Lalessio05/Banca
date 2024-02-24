@@ -12,7 +12,6 @@ internal class Comunicazione : IDisposable
     {
         Stream.Write(UTF8.GetBytes($"{(int)operazione}|{c.Password}|{string.Join(',',parametriOperazione)}"));
         Span<byte> Buffer = new byte[2048];
-
         _ = Stream.Read(Buffer);
         var risposta = Risposta.Parse(Buffer);
     }

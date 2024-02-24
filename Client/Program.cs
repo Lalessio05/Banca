@@ -1,5 +1,5 @@
 using Client.Components;
-
+using Syncfusion.Blazor;
 namespace Client
 {
     public class Program
@@ -26,7 +26,6 @@ namespace Client
 
             app.UseStaticFiles();
             app.UseAntiforgery();
-
             app.MapRazorComponents<App>()
                 .AddInteractiveServerRenderMode();
 

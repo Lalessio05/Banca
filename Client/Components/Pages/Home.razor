@@ -6,14 +6,23 @@
 
 @foreach (var a in Enum.GetValues(typeof(Operazioni)))
 {
-    <button @onclick="()=>Esegui(op:(Operazioni)a)" style="margin=0,10,0,0">
-        @a.ToString()
-    </button>
+
+    <input type="radio"  name="operazioni" value="@a" @onchange="(() => Selected = (Operazioni)a)"  />
+    <label for="@a">@a</label>
+    <br />
 }
+<br/>
+@if (Selected is Operazioni.Prelievo || Selected is Operazioni.Deposito)
+{
+    <input type="number" @bind="@QuantitativoDenaro" />
+}
+<button @onclick="Esegui" type="submit"/>
 @code {
     Cliente c = new("Mattia","Gambato",300,"batanga");
-    void Esegui(Operazioni op)
+    void Esegui()
     {
-        Comunicazione.EseguiOperazione(op, c, "30");
+        Comunicazione.EseguiOperazione(Selected, c, QuantitativoDenaro?.ToString() ?? string.Empty);
     }
+    Operazioni Selected {get;set;}
+    double? QuantitativoDenaro { get; set; }
 }
