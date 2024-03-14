@@ -7,22 +7,37 @@
 @foreach (var a in Enum.GetValues(typeof(Operazioni)))
 {
 
-    <input type="radio"  name="operazioni" value="@a" @onchange="(() => Selected = (Operazioni)a)"  />
+    <input type="radio" id="@a"name="operazioni" value="@a" @onchange="(() => Selected = (Operazioni)a)"  />
     <label for="@a">@a</label>
     <br />
 }
 <br/>
 @if (Selected is Operazioni.Prelievo || Selected is Operazioni.Deposito)
-{
-    <input type="number" @bind="@QuantitativoDenaro" />
+{   
+    <input type="number" id="soldi" @bind="@QuantitativoDenaro" />
+    <label for="soldi">Inserire quantitativo denaro</label>
+    if (QuantitativoDenaro > 0) //Modificare
+    {
+        <input type="number" id="PIN" @bind="@PIN" />
+        <label for="PIN">Inserire PIN</label>
+    }
 }
-<button @onclick="Esegui" type="submit"/>
+@if(Risposta is not null)
+{
+    <h3>@Risposta.Messaggio</h3>
+}
+<button class="button" @onclick="Esegui" type="submit">
+    Invia operazione
+    </button>
 @code {
-    Cliente c = new("Mattia","Gambato",300,"batanga");
+    Cliente c = new("Mattia","Gambato",300,"1234"); //Creare lista clienti
+    Risposta? Risposta{ get; set; } = null;
     void Esegui()
     {
-        Comunicazione.EseguiOperazione(Selected, c, QuantitativoDenaro?.ToString() ?? string.Empty);
+        Risposta = Comunicazione.EseguiOperazione(Selected, c, QuantitativoDenaro?.ToString() ?? string.Empty);
+        
     }
-    Operazioni Selected {get;set;}
+    Operazioni Selected { get; set; }
     double? QuantitativoDenaro { get; set; }
+    string PIN { get; set; } = string.Empty;
 }

@@ -1,15 +1,15 @@
 ﻿using static System.Text.Encoding;
 namespace BancaComuni
 {
-    public class Domanda(Operazioni op, string password, params string[] parametri)
+    public class Domanda(Operazioni op, string pin, params string[] parametri)
     {
-        public string Password => password;
+        public string PIN => pin;
         public Operazioni Operazione => op;
         public string[] Parametri => parametri;
 
         public override string ToString()
         {
-            return $"{(int)Operazione}|{Password}|{string.Join(',',Parametri)}";
+            return $"{(int)Operazione}|{PIN}|{string.Join(',',Parametri)}";
         }
         public static Domanda Parse(Span<byte> d)
         {

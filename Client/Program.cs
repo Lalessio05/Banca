@@ -1,5 +1,4 @@
 using Client.Components;
-using Syncfusion.Blazor;
 namespace Client
 {
     public class Program
