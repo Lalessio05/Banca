@@ -34,8 +34,7 @@ class HTTPServer : IOnlineCommunication
                 RespondWithError(response, "PIN non valido.");
                 continue;
             }
-
-            switch (request.Url.AbsolutePath)
+            switch (request.Url?.AbsolutePath)
             {
                 case "/prelievo":
                     HandlePOSTRequest(request.HttpMethod, richiesta, response, HandleWithdrawal);

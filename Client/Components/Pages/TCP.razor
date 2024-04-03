@@ -1,4 +1,4 @@
-﻿@page "/testTCP"
+﻿@page "/"
 @using System.Net.Sockets
 @using System.Text.Json
 @using System.Threading.Tasks
@@ -53,15 +53,15 @@
                         {
                             Nome = "Gianni",
                             Cognome = "Gambato",
-                            PIN = pin,
+                            PINBytes = Crypt.Encrypt(pin),
                             Amount = amount,
                             Operazione = Enum.Parse<Operazione>(selectedOperation)
                         });
 
                     await writer.WriteLineAsync(requestData);
                     await writer.FlushAsync();
-
-                    string responseData = await stream.ReadAsync();
+                    
+                    string responseData = await reader.ReadLineAsync(); 
                     responseMessage = responseData;
                 }
             }

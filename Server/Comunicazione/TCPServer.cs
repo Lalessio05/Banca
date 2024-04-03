@@ -35,9 +35,9 @@ namespace Server.Comunicazione
             {
                 try
                 {
-                    string requestData = reader.ReadLine();
-                    var richiesta = JsonConvert.DeserializeObject<Richiesta>(requestData);
 
+                    string requestData = reader.ReadLine() ?? throw new Exception("Request data is missing");
+                    var richiesta = JsonConvert.DeserializeObject<Richiesta>(requestData) ?? throw new Exception("Can't convert object sent by client");
                     if (!bank.IsValidPin(richiesta.PIN))
                     {
                         RespondWithError(writer, "PIN non valido.");
@@ -48,6 +48,7 @@ namespace Server.Comunicazione
                     {
                         case Operazione.Prelievo:
                             HandleOperation(richiesta, writer, HandleWithdrawal);
+                            stream.Write(System.Text.Encoding.UTF8.GetBytes("T'apposto"));
                             break;
                         case Operazione.Deposito:
                             HandleOperation(richiesta, writer, HandleDeposit);
@@ -96,18 +97,21 @@ namespace Server.Comunicazione
         {
             Account account = bank.GetAccount(richiesta.PIN);
             RespondWithJson(writer, account.Transactions);
+            
         }
 
 
         private static void RespondWithError(StreamWriter writer, string errorMessage)
         {
             writer.WriteLine($"ERROR: {errorMessage}");
+            writer.Flush();
         }
 
         private static void RespondWithJson(StreamWriter writer, object data)
         {
             string jsonData = JsonConvert.SerializeObject(data);
             writer.WriteLine(jsonData);
+            writer.Flush();
         }
     }
 }

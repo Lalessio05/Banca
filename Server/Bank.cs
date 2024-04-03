@@ -3,7 +3,7 @@ namespace Server;
 class Bank
 {
     private readonly Dictionary<string, Account> accounts = [];
-    private const string pinFilePath = @"C:\Users\User\Documents\pins.txt";
+    private const string pinFilePath = @"C:\Users\Catri\Documents\pins.txt";
 
     public Bank()
     {
@@ -26,10 +26,7 @@ class Bank
         }
     }
 
-    public bool IsValidPin(string pin)
-    {
-        return accounts.ContainsKey(pin);
-    }
+    public bool IsValidPin(string pin) => accounts.ContainsKey(pin);
 
     public Account GetAccount(string pin)
     {
@@ -37,6 +34,6 @@ class Bank
         {
             return accounts[pin];
         }
-        return null;
+        throw new Exception("Invalid PIN");
     }
 }
