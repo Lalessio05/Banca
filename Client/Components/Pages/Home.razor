@@ -1,0 +1,70 @@
+﻿@page "/test"
+@using System.Net.Http
+@using System.Text.Json
+@using System.Threading.Tasks
+@rendermode InteractiveServer
+
+<h3>Test del server HTTP</h3>
+
+<p>Inserisci il PIN:</p>
+<input @bind="pin" />
+
+<p>Scegli un'operazione:</p>
+<select @bind="selectedOperation">
+    <option value="prelievo">Prelievo</option>
+    <option value="deposito">Deposito</option>
+    <option value="estratto-conto">Estratto Conto</option>
+</select>
+
+@if (selectedOperation == "prelievo" || selectedOperation == "deposito")
+{
+    <div>
+        <p>Inserisci l'importo:</p>
+        <input @bind="amount" type="number" />
+    </div>
+}
+
+<button @onclick="SendRequest">Invia richiesta</button>
+
+<p>@responseMessage</p>
+
+@code {
+    private string pin;
+    private string selectedOperation = "prelievo";
+    private int amount;
+    private string responseMessage;
+
+    private async Task SendRequest()
+    {
+        HttpClient client = new HttpClient();
+
+        string url = $"http://localhost:8080/{selectedOperation}?pin={pin}";
+
+        if (selectedOperation == "prelievo" || selectedOperation == "deposito")
+        {
+            var content = new StringContent(amount.ToString(), System.Text.Encoding.UTF8, "application/json");
+            var response = await client.PostAsync(url, content);
+            if (response.IsSuccessStatusCode)
+            {
+                responseMessage = await response.Content.ReadAsStringAsync();
+            }
+            else
+            {
+                responseMessage = $"Errore: {response.StatusCode}";
+            }
+        }
+        else
+        {
+            var response = await client.GetAsync(url);
+            if (response.IsSuccessStatusCode)
+            {
+                var jsonResponse = await response.Content.ReadAsStringAsync();
+                responseMessage = jsonResponse;
+            }
+            else
+            {
+                responseMessage = $"Errore: {response.StatusCode}";
+            }
+        }
+    }
+}
