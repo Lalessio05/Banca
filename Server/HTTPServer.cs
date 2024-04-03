@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System.Net;
 using System.Text;
+using static System.Text.Encoding;
 namespace Server;
 class HTTPServer
 {
@@ -24,10 +25,13 @@ class HTTPServer
             HttpListenerContext context = await listener.GetContextAsync();
             HttpListenerRequest request = context.Request;
             HttpListenerResponse response = context.Response;
+            byte[] buffer = new byte[4096];
+            request.InputStream.Read(buffer);
+            string jsonBody = UTF8.GetString(buffer);
+            var richiesta = JsonConvert.DeserializeObject<Richiesta>(jsonBody);
+            
 
-            string pin = request.QueryString["pin"];
-
-            if (!bank.IsValidPin(pin))
+            if (!bank.IsValidPin(richiesta.PIN))
             {
                 RespondWithError(response, "PIN non valido.");
                 continue;
@@ -36,10 +40,10 @@ class HTTPServer
             switch (request.Url.AbsolutePath)
             {
                 case "/prelievo":
-                    HandlePOSTRequest(request, response, HandleWithdrawal);
+                    HandlePOSTRequest(request.HttpMethod,richiesta, response, HandleWithdrawal);
                     break;
                 case "/deposito":
-                    HandlePOSTRequest(request, response, HandleDeposit);
+                    HandlePOSTRequest(request.HttpMethod,richiesta, response, HandleDeposit);
                     break;
                 case "/estratto-conto":
                     HandleStatement(request, response);
@@ -51,28 +55,25 @@ class HTTPServer
         }
     }
 
-    void HandlePOSTRequest(HttpListenerRequest request, HttpListenerResponse response, Action<HttpListenerResponse, Account, double> HandleOperation)
+    void HandlePOSTRequest(string metodo, Richiesta richiesta, HttpListenerResponse response, Action<HttpListenerResponse, Account, double> HandleOperation)
     {
-        if (request.HttpMethod != "POST")
+        if (metodo != "POST")
         {
             RespondWithError(response, "Metodo non supportato.");
             return;
         }
         string requestBody;
-        using (var reader = new StreamReader(request.InputStream, request.ContentEncoding))
-        {
-            requestBody = reader.ReadToEnd();
-        }
+        
 
-        if (!int.TryParse(request.QueryString["amount"], out int amount))
-        {
-            RespondWithError(response, "Formato dell'importo non valido.");
-            return;
-        }
-        Account account = bank.GetAccount(request.QueryString["pin"]);
+        //if (!int.TryParse(request.QueryString["amount"], out int amount))
+        //{
+        //    RespondWithError(response, "Formato dell'importo non valido.");
+        //    return;
+        //}
+        Account account = bank.GetAccount(richiesta.PIN);
 
-        Logger.LogTransaction(request.QueryString["nome"], request.QueryString["cognome"], Enum.Parse<Operazione>("Prelievo"), amount);
-        HandleOperation(response, account, amount);
+        Logger.LogTransaction(richiesta.Nome, richiesta.Cognome, Enum.Parse<Operazione>("Prelievo"), richiesta.Amount);
+        HandleOperation(response, account, richiesta.Amount);
 
     }
     private void HandleWithdrawal(HttpListenerResponse response, Account account, double amount)

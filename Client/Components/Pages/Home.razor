@@ -2,6 +2,7 @@
 @using System.Net.Http
 @using System.Text.Json
 @using System.Threading.Tasks
+@using Newtonsoft.Json
 @rendermode InteractiveServer
 
 <h3>Test del server HTTP</h3>
@@ -42,7 +43,15 @@
 
         if (selectedOperation == "prelievo" || selectedOperation == "deposito")
         {
-            var content = new StringContent(amount.ToString(), System.Text.Encoding.UTF8, "application/json");
+            var content = new StringContent(JsonConvert.SerializeObject(
+            new
+            {
+                Nome= "Gianni",
+                Cognome="Gambato",
+                PIN = pin,
+                Amount = amount,
+            }
+            ), System.Text.Encoding.UTF8, "application/json");
             var response = await client.PostAsync(url, content);
             if (response.IsSuccessStatusCode)
             {
