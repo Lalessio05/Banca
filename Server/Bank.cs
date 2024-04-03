@@ -2,7 +2,7 @@
 namespace Server;
 class Bank
 {
-    private readonly Dictionary<string, Account> accounts = new();
+    private readonly Dictionary<string, Account> accounts = [];
     private const string pinFilePath = @"C:\Users\User\Documents\pins.txt";
 
     public Bank()

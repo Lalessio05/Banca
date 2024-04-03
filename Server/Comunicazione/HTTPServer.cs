@@ -1,16 +1,17 @@
 ﻿using Newtonsoft.Json;
+using Server.Utilities;
 using System.Net;
 using System.Text;
-using static System.Text.Encoding;
-namespace Server;
-class HTTPServer
+using static Server.Utilities.Utilities;
+namespace Server.Comunicazione;
+class HTTPServer : IOnlineCommunication
 {
     private readonly HttpListener listener = new();
     private readonly Bank bank = new();
     private readonly ILogger Logger = new FileHandle();
-    public HTTPServer(string prefix)
+    public HTTPServer(string ip, int port)
     {
-        listener.Prefixes.Add(prefix);
+        listener.Prefixes.Add($"{ip}:{port}");
     }
     public void Run()
     {
@@ -25,11 +26,8 @@ class HTTPServer
             HttpListenerContext context = await listener.GetContextAsync();
             HttpListenerRequest request = context.Request;
             HttpListenerResponse response = context.Response;
-            byte[] buffer = new byte[4096];
-            request.InputStream.Read(buffer);
-            string jsonBody = UTF8.GetString(buffer);
-            var richiesta = JsonConvert.DeserializeObject<Richiesta>(jsonBody);
-            
+
+            var richiesta = GetRequestObject(request.InputStream);
 
             if (!bank.IsValidPin(richiesta.PIN))
             {
@@ -40,13 +38,13 @@ class HTTPServer
             switch (request.Url.AbsolutePath)
             {
                 case "/prelievo":
-                    HandlePOSTRequest(request.HttpMethod,richiesta, response, HandleWithdrawal);
+                    HandlePOSTRequest(request.HttpMethod, richiesta, response, HandleWithdrawal);
                     break;
                 case "/deposito":
-                    HandlePOSTRequest(request.HttpMethod,richiesta, response, HandleDeposit);
+                    HandlePOSTRequest(request.HttpMethod, richiesta, response, HandleDeposit);
                     break;
                 case "/estratto-conto":
-                    HandleStatement(request, response);
+                    HandleStatement(request, richiesta, response);
                     break;
                 default:
                     RespondWithError(response, "Percorso non valido.");
@@ -62,23 +60,15 @@ class HTTPServer
             RespondWithError(response, "Metodo non supportato.");
             return;
         }
-        string requestBody;
-        
-
-        //if (!int.TryParse(request.QueryString["amount"], out int amount))
-        //{
-        //    RespondWithError(response, "Formato dell'importo non valido.");
-        //    return;
-        //}
         Account account = bank.GetAccount(richiesta.PIN);
 
-        Logger.LogTransaction(richiesta.Nome, richiesta.Cognome, Enum.Parse<Operazione>("Prelievo"), richiesta.Amount);
         HandleOperation(response, account, richiesta.Amount);
+        Logger.LogTransaction(richiesta.Nome, richiesta.Cognome, Enum.Parse<Operazione>("Prelievo"), richiesta.Amount);
 
     }
     private void HandleWithdrawal(HttpListenerResponse response, Account account, double amount)
     {
-        
+
         if (account.Withdraw(amount))
         {
             RespondWithJson(response, amount);
@@ -95,17 +85,16 @@ class HTTPServer
         account.Deposit(amount);
         RespondWithJson(response, "Operation Succesfull");
     }
-
-    private void HandleStatement(HttpListenerRequest request, HttpListenerResponse response)
+    private void HandleStatement(HttpListenerRequest request, Richiesta richiesta, HttpListenerResponse response)
     {
         if (request.HttpMethod == "GET")
         {
-            Account account = bank.GetAccount(request.QueryString["pin"]);
+            Account account = bank.GetAccount(richiesta.PIN);
             RespondWithJson(response, account.Transactions);
         }
         else
             RespondWithError(response, "Metodo non supportato.");
-        
+
     }
     private static void RespondWithError(HttpListenerResponse response, string errorMessage)
     {
@@ -114,7 +103,6 @@ class HTTPServer
         response.OutputStream.Write(buffer, 0, buffer.Length);
         response.OutputStream.Close();
     }
-
     private static void RespondWithJson(HttpListenerResponse response, object data)
     {
         string jsonData = JsonConvert.SerializeObject(data);

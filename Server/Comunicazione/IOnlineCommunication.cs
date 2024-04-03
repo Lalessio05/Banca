@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Server;
-public enum Operazione
+namespace Server.Comunicazione
 {
-    Prelievo = 1,
-    Deposito = 2,
-    Estratto_Conto = 3,
+    internal interface IOnlineCommunication
+    {
+        void Run();
+    }
 }

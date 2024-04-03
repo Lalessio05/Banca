@@ -1,19 +1,74 @@
-﻿@page "/counter"
+﻿@page "/testTCP"
+@using System.Net.Sockets
+@using System.Text.Json
+@using System.Threading.Tasks
+@using Newtonsoft.Json
+@using Server;
 @rendermode InteractiveServer
 
-<PageTitle>Counter</PageTitle>
+<h3>Test del server TCP</h3>
 
-<h1>Counter</h1>
+<p>Inserisci il PIN:</p>
+<input @bind="pin" />
 
-<p role="status">Current count: @currentCount</p>
+<p>Scegli un'operazione:</p>
+<select @bind="selectedOperation">
+    <option value="Prelievo">Prelievo</option>
+    <option value="Deposito">Deposito</option>
+    <option value="Estratto_Conto">Estratto Conto</option>
+</select>
 
-<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+@if (selectedOperation == "Prelievo" || selectedOperation == "Deposito")
+{
+    <div>
+        <p>Inserisci l'importo:</p>
+        <input @bind="amount" type="number" />
+    </div>
+}
+
+<button @onclick="SendRequest">Invia richiesta</button>
+
+<p>@responseMessage</p>
 
 @code {
-    private int currentCount = 0;
+    private string pin;
+    private string selectedOperation = "Prelievo";
+    private int amount;
+    private string responseMessage;
 
-    private void IncrementCount()
+    private async Task SendRequest()
     {
-        currentCount++;
+        using (TcpClient client = new TcpClient())
+        {
+            try
+            {
+                await client.ConnectAsync("localhost", 8080);
+
+                using (NetworkStream stream = client.GetStream())
+                using (StreamWriter writer = new StreamWriter(stream))
+                using (StreamReader reader = new StreamReader(stream))
+                {
+                    string requestData = JsonConvert.SerializeObject(
+                        new
+                        {
+                            Nome = "Gianni",
+                            Cognome = "Gambato",
+                            PIN = pin,
+                            Amount = amount,
+                            Operazione = Enum.Parse<Operazione>(selectedOperation)
+                        });
+
+                    await writer.WriteLineAsync(requestData);
+                    await writer.FlushAsync();
+
+                    string responseData = await stream.ReadAsync();
+                    responseMessage = responseData;
+                }
+            }
+            catch (Exception ex)
+            {
+                responseMessage = $"Errore: {ex.Message}";
+            }
+        }
     }
 }
