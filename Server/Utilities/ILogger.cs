@@ -8,6 +8,6 @@ namespace Server.Utilities
 {
     internal interface ILogger
     {
-        void LogTransaction(string nome, string cognome, Operazione op, double amount);
+        void LogTransaction(string nome, string cognome, Operazione op, double amount, string cardNumber);
     }
 }

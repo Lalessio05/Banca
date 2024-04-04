@@ -29,7 +29,7 @@ class HTTPServer : IOnlineCommunication
 
             var richiesta = GetRequestObject(request.InputStream);
 
-            if (!bank.IsValidPin(richiesta.PIN))
+            if (!bank.IsValidCardNumber(richiesta.PIN))
             {
                 RespondWithError(response, "PIN non valido.");
                 continue;
@@ -62,7 +62,7 @@ class HTTPServer : IOnlineCommunication
         Account account = bank.GetAccount(richiesta.PIN);
 
         HandleOperation(response, account, richiesta.Amount);
-        Logger.LogTransaction(richiesta.Nome, richiesta.Cognome, Enum.Parse<Operazione>("Prelievo"), richiesta.Amount);
+        Logger.LogTransaction(richiesta.Nome, richiesta.Cognome, Enum.Parse<Operazione>("Prelievo"), richiesta.Amount, richiesta.NumeroCarta);
 
     }
     private void HandleWithdrawal(HttpListenerResponse response, Account account, double amount)

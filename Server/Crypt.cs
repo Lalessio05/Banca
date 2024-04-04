@@ -1,15 +1,15 @@
-﻿using System;
-using System.IO;
-using System.Security.Cryptography;
+﻿using System.Security.Cryptography;
 using System.Text;
+
+namespace Server;
 
 public class Crypt
 {
     static private RSACryptoServiceProvider rsa;
-   static private string publicKeyFile = @"C:\Users\catri\Documents\publicKey.xml";
-    static private string privateKeyFile = @"C:\Users\catri\Documents\privateKey.xml";
+    private static readonly string publicKeyFile = @"C:\Users\User\Documents\publicKey.xml";
+    private static readonly string privateKeyFile = @"C:\Users\User\Documents\privateKey.xml";
 
-    static  Crypt()
+    static Crypt()
     {
         rsa = new RSACryptoServiceProvider();
         if (File.Exists(publicKeyFile) && File.Exists(privateKeyFile))
@@ -22,7 +22,7 @@ public class Crypt
         }
     }
 
-    private  static void LoadKeys()
+    private static void LoadKeys()
     {
         string publicKey = File.ReadAllText(publicKeyFile);
         string privateKey = File.ReadAllText(privateKeyFile);
@@ -44,4 +44,3 @@ public class Crypt
         return Encoding.UTF8.GetString(decryptedData);
     }
 }
-

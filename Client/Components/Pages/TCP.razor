@@ -25,6 +25,9 @@
         <input @bind="amount" type="number" />
     </div>
 }
+<p>Inserisci il numero di carta:</p>
+<input @bind="numeroCarta" />
+
 
 <button @onclick="SendRequest">Invia richiesta</button>
 
@@ -32,6 +35,7 @@
 
 @code {
     private string pin;
+    private string numeroCarta;
     private string selectedOperation = "Prelievo";
     private int amount;
     private string responseMessage;
@@ -53,9 +57,11 @@
                         {
                             Nome = "Gianni",
                             Cognome = "Gambato",
+                            NumeroCarta = numeroCarta,
                             PINBytes = Crypt.Encrypt(pin),
                             Amount = amount,
                             Operazione = Enum.Parse<Operazione>(selectedOperation)
+                        
                         });
 
                     await writer.WriteLineAsync(requestData);

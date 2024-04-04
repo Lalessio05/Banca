@@ -10,6 +10,7 @@ namespace Server.Comunicazione
     {
         public string Nome { get; set; } = string.Empty;
         public string Cognome { get; set; } = string.Empty;
+        public string NumeroCarta { get; set; } = string.Empty;
         public byte[] PINBytes { get;set;} = new byte[1024];
         public string PIN => Crypt.Decrypt(PINBytes);
         public double Amount { get; set; }

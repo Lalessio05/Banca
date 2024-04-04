@@ -38,17 +38,20 @@ namespace Server.Comunicazione
 
                     string requestData = reader.ReadLine() ?? throw new Exception("Request data is missing");
                     var richiesta = JsonConvert.DeserializeObject<Richiesta>(requestData) ?? throw new Exception("Can't convert object sent by client");
-                    if (!bank.IsValidPin(richiesta.PIN))
+                    if (!bank.IsValidCardNumber(richiesta.NumeroCarta))
                     {
-                        RespondWithError(writer, "PIN non valido.");
+                        RespondWithError(writer, "Numero di carta inesistente.");
                         return;
                     }
-
+                    if (!bank.IsRightPIN(richiesta.PIN, richiesta.NumeroCarta))
+                    {
+                        RespondWithError(writer, "Pin errato.");
+                        return;
+                    }
                     switch (richiesta.Operazione)
                     {
                         case Operazione.Prelievo:
                             HandleOperation(richiesta, writer, HandleWithdrawal);
-                            stream.Write(System.Text.Encoding.UTF8.GetBytes("T'apposto"));
                             break;
                         case Operazione.Deposito:
                             HandleOperation(richiesta, writer, HandleDeposit);
@@ -75,7 +78,7 @@ namespace Server.Comunicazione
             Account account = bank.GetAccount(richiesta.PIN);
 
             operation(account, richiesta.Amount);
-            logger.LogTransaction(richiesta.Nome, richiesta.Cognome, richiesta.Operazione, richiesta.Amount);
+            logger.LogTransaction(richiesta.Nome, richiesta.Cognome, richiesta.Operazione, richiesta.Amount, richiesta.NumeroCarta);
 
             RespondWithJson(writer, "Operation Succesfull");
         }
