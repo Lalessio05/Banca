@@ -1,47 +1,33 @@
-﻿using Server;
+﻿using Server.Utilities;
+
 namespace Server;
-class Bank
+class Bank(List<Account> accounts)
 {
-    private readonly Dictionary<string, Account> accounts = [];
-    private const string pinFilePath = @"C:\Users\User\Documents\pins.txt";
-
-    public Bank()
-    {
-        LoadAccounts();
-    }
-
-    private void LoadAccounts()
-    {
-        try
-        {
-            if (File.Exists(pinFilePath))
-            {
-                string[] lines = File.ReadAllLines(pinFilePath);
-                foreach (string line in lines)
-                {
-                    string[] parts = line.Split(':');
-                    if (parts.Length == 3 && int.TryParse(parts[1], out int balance))
-                    {
-                        accounts.Add(parts[2], new Account(parts[0], balance, parts[2]));
-                    }
-                }
-            }
-        }
-        catch 
-        {
-            throw new Exception("Errore nella formattazione del file utenti");
-        }
-    }
-
-    public bool IsValidCardNumber(string cardNumber) => accounts.ContainsKey(cardNumber);
-    public bool IsRightPIN(string pin, string cardNumber) => accounts.First(x=>x.Value.NumeroCarta == cardNumber).Value.Pin == pin;
-
+    private readonly List<Account> accounts = accounts;
+    public bool IsValidCardNumber(string cardNumber) => accounts.Any(x=>x.NumeroCarta == cardNumber);
+    public bool IsRightPIN(string pin, string cardNumber) => accounts.First(x => x.NumeroCarta == cardNumber).Pin == pin;
     public Account GetAccount(string cardNumber)
     {
         if (IsValidCardNumber(cardNumber))
         {
-            return accounts[cardNumber];
+            return accounts.First(x=>x.NumeroCarta == cardNumber);
         }
         throw new Exception("Invalid card number");
+    }
+    public void Withdraw(Account account, double amount)
+    {
+        if (account.Balance <= amount)
+            throw new Exception("Saldo insufficiente sul conto");
+        else if (amount < 0)
+            throw new Exception("Impossibile prelevare somma negativa");
+        account.Balance -= amount;
+    }
+
+    public void Deposit(Account account, double amount)
+    {
+        if (amount < 0)
+            throw new Exception("Impossibile depositare una somma negativa");
+        account.Balance += amount;
+        return;
     }
 }

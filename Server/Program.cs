@@ -8,7 +8,7 @@ class Program
     //Gestire caricamento e scaricamento lista transazioni
     static void Main(string[] args)
     {
-        IOnlineCommunication server = new TcpServer("127.0.0.1",8080);
+        OnlineCommunication server = new TcpServer("127.0.0.1",8080);
         server.Run();
         Console.ReadLine();
     }

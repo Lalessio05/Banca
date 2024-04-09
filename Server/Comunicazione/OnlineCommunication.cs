@@ -6,8 +6,9 @@ using System.Threading.Tasks;
 
 namespace Server.Comunicazione
 {
-    internal interface IOnlineCommunication
+    abstract class OnlineCommunication
     {
-        void Run();
+        abstract public void Run();
+        abstract protected Task HandleRequests();
     }
 }
