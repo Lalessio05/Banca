@@ -1,7 +1,7 @@
 ﻿namespace Server;
 public enum Operazione
 {
-    Prelievo = 1,
-    Deposito = 2,
-    Estratto_Conto = 3,
+    Prelievo = 0,
+    Deposito = 1,
+    Estratto_Conto = 2,
 }

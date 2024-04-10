@@ -15,41 +15,40 @@ namespace Server.Utilities
             if (!File.Exists(pinPath))
                 throw new Exception("Il file contenente i dati delle carte non è stato trovato");
             PINPath = pinPath;
-
         }
-        public string GetTransactionStatement(string nome, string cognome) => File.ReadAllText($"{UserTransactionPath}/{cognome}_{nome}.txt");
-
-        public void LogTransaction(string cognome, string nome, Operazione op, double amount, string cardNumber)
+        public void EditBalance(List<Account> accounts)
         {
-            File.AppendAllText($"{UserTransactionPath}/{cognome}_{nome}.txt", JsonConvert.SerializeObject(new
-            {
-                Nome = nome,
-                Cognome = cognome,
-                Operazione = op,
-                Amount = amount,
-                CardNumber = cardNumber
-            }));
+            File.WriteAllText(PINPath, JsonConvert.SerializeObject(accounts, Formatting.Indented));
+        }
+        public string GetTransactionStatement(string nome, string cognome) => File.ReadAllText($"{UserTransactionPath}/{nome}_{cognome}.txt");
+
+        public void LogTransaction(string nome, string cognome, Operazione op, double amount, string cardNumber, DateTime dataOperazione)
+        {
+            File.AppendAllText($"{UserTransactionPath}/{nome}_{cognome}.txt", 
+                JsonConvert.SerializeObject(new Transaction(nome,cognome,op,amount,cardNumber,dataOperazione))
+            );
         }
         public List<Account> GetAccounts()
         {
-            List<Account> accounts = [];
             try
             {
-                string[] lines = File.ReadAllLines(PINPath);
-                foreach (string line in lines)
-                {
-                    string[] parts = line.Split(':');
-                    if (parts.Length == 3 && double.TryParse(parts[2], out double balance))
-                    {
-                        accounts.Add(new Account(parts[1], balance, parts[0]));
-                    }
-                }
+                return JsonConvert.DeserializeObject<List<Account>>(File.ReadAllText(PINPath)) ?? throw new Exception("File utenti vuoto");
             }
             catch
             {
                 throw new Exception("Errore nella formattazione del file utenti");
             }
-            return accounts;
+        }
+
+        public IEnumerable<Transaction> GetLastDayTransactions(string nome, string cognome)
+        {
+            if (!File.Exists($"{UserTransactionPath}/{nome}_{cognome}.txt"))
+                File.Create($"{UserTransactionPath}/{nome}_{cognome}.txt").Close();
+            foreach (var riga in File.ReadAllLines($"{UserTransactionPath}/{nome}_{cognome}.txt"))
+            {
+                yield return JsonConvert.DeserializeObject<Transaction>(riga) ?? throw new Exception("Errore nella deserializzazione della riga");
+            }
+            
         }
     }
 }

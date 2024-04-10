@@ -15,5 +15,6 @@ namespace Server.Comunicazione
         public string PIN => Crypt.Decrypt(PINBytes);
         public double Amount { get; set; }
         public Operazione Operazione { get; set; }
+        public DateTime DataTransazione { get; set; }
     }
 }

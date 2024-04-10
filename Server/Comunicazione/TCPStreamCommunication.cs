@@ -23,7 +23,7 @@ namespace Server.Comunicazione
             writer.Flush();
         }
 
-        public void RespondWithJson( object data)
+        public void RespondWithJson(object data)
         {
             string jsonData = JsonConvert.SerializeObject(data);
             writer.WriteLine(jsonData);

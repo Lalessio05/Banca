@@ -2,6 +2,7 @@
 using Server.Utilities;
 using System.Net;
 using System.Net.Sockets;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Server.Comunicazione
 {
@@ -75,12 +76,19 @@ namespace Server.Comunicazione
 
         private void HandleOperation(Richiesta richiesta, TCPStreamCommunication streamCommunication, Action<Account, double> operation)
         {
+            if (richiesta.Operazione == Operazione.Prelievo)
+            {
+                if (!bank.CheckWithdrawable(richiesta.Amount, Logger.GetLastDayTransactions(richiesta.Nome, richiesta.Cognome).ToList()))
+                    throw new Exception("Limite giornaliero prelievi superato, provare con uan cifra minore");
+            }
+
             Account account = bank.GetAccount(richiesta.NumeroCarta);
 
             operation(account, richiesta.Amount);
-            Logger.LogTransaction(richiesta.Nome, richiesta.Cognome, richiesta.Operazione, richiesta.Amount, richiesta.NumeroCarta);
-
+            Logger.EditBalance(bank.accounts);
+            Logger.LogTransaction(richiesta.Nome, richiesta.Cognome, richiesta.Operazione, richiesta.Amount, richiesta.NumeroCarta, richiesta.DataTransazione);
             streamCommunication.RespondWithJson("Operation Succesfull");
+
         }
 
         private void HandleWithdrawal(Account account, double amount)

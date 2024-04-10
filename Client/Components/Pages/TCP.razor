@@ -46,7 +46,7 @@
         {
             try
             {
-                await client.ConnectAsync("localhost", 8080);
+                await client.ConnectAsync("localhost", 9090);
 
                 using (NetworkStream stream = client.GetStream())
                 using (StreamWriter writer = new StreamWriter(stream))
@@ -60,9 +60,9 @@
                             NumeroCarta = numeroCarta,
                             PINBytes = Crypt.Encrypt(pin),
                             Amount = amount,
-                            Operazione = Enum.Parse<Operazione>(selectedOperation)
-                        
-                        });
+                            Operazione = Enum.Parse<Operazione>(selectedOperation),
+                            DataTransazione = DateTime.Now,
+                });
 
                     await writer.WriteLineAsync(requestData);
                     await writer.FlushAsync();
